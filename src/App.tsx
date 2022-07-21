@@ -1,61 +1,89 @@
-import './App.scss';
+import { useEffect, useState } from 'react';
 
-// import usersFromServer from './api/users';
-// import todosFromServer from './api/todos';
+import './App.scss';
+import { TodoList } from './components/TodoList/TodoList';
+
+import { Todo } from './types/Todo';
+import { User } from './types/User';
+
+import usersFromServer from './api/users';
+import todosFromServer from './api/todos';
+import { TodoForm } from './components/TodoForm/TodoForm';
+
+function getUser(userId: number): User | null {
+  const foundUser = usersFromServer.find(
+    user => user.id === userId,
+  );
+
+  return foundUser || null;
+}
 
 export const App = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  useEffect(() => {
+    const initialTodos = todosFromServer.map(todo => ({
+      ...todo,
+      user: getUser(todo.userId),
+    }));
+
+    setTodos(initialTodos);
+  }, []);
+
+  const addTodo = (
+    newTitle: string,
+    newUserId: number,
+    newCompleted: boolean,
+  ) => {
+    const maxId = Math.max(
+      ...todos.map(todo => todo.id),
+    );
+
+    const newTodo: Todo = {
+      id: maxId + 1,
+      title: newTitle,
+      userId: newUserId,
+      completed: newCompleted,
+      user: getUser(newUserId),
+    };
+
+    setTodos(currentTodos => [...currentTodos, newTodo]);
+  };
+
+  const deleteTodo = (todoId: number) => {
+    const filteredTodos = todos.filter(
+      todo => todo.id !== todoId,
+    );
+
+    setTodos(filteredTodos);
+  };
+
+  const updateTodo = (updatedTodo: Todo) => {
+    setTodos(
+      todos.map(todo => {
+        if (todo.id !== updatedTodo.id) {
+          return todo;
+        }
+
+        return {
+          ...updatedTodo,
+          user: getUser(updatedTodo.userId),
+        };
+      }),
+    );
+  };
+
   return (
     <div className="App">
       <h1>Add todo form</h1>
 
-      <form action="/api/users" method="POST">
-        <div className="field">
-          <input type="text" data-cy="titleInput" />
-          <span className="error">Please enter a title</span>
-        </div>
+      <TodoForm onSubmit={addTodo} />
 
-        <div className="field">
-          <select data-cy="userSelect">
-            <option value="0" disabled>Choose a user</option>
-          </select>
-
-          <span className="error">Please choose a user</span>
-        </div>
-
-        <button type="submit" data-cy="submitButton">
-          Add
-        </button>
-      </form>
-
-      <section className="TodoList">
-        <article data-id="1" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">
-            delectus aut autem
-          </h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="15" className="TodoInfo TodoInfo--completed">
-          <h2 className="TodoInfo__title">delectus aut autem</h2>
-
-          <a className="UserInfo" href="mailto:Sincere@april.biz">
-            Leanne Graham
-          </a>
-        </article>
-
-        <article data-id="2" className="TodoInfo">
-          <h2 className="TodoInfo__title">
-            quis ut nam facilis et officia qui
-          </h2>
-
-          <a className="UserInfo" href="mailto:Julianne.OConner@kory.org">
-            Patricia Lebsack
-          </a>
-        </article>
-      </section>
+      <TodoList
+        todos={todos}
+        onTodoDeleted={deleteTodo}
+        onTodoUpdated={updateTodo}
+      />
     </div>
   );
 };
