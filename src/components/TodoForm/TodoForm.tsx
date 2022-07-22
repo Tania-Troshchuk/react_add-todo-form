@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
-import usersFromServer from '../../api/users';
 import { Todo } from '../../types/Todo';
+import { User } from '../../types/User';
+
+import usersFromServer from '../../api/users';
+
+export function getUser(userId: number): User | null {
+  const foundUser = usersFromServer.find(
+    user => user.id === userId,
+  );
+
+  return foundUser || null;
+}
 
 type Props = {
-  onSubmit: (
-    title: string,
-    userId: number,
-    completed: boolean,
-  ) => void,
-
+  onSubmit: (todo: Todo) => void,
   todo?: Todo | null,
 };
 
-export const TodoForm: React.FC<Props> = ({ onSubmit, todo }) => {
+export const TodoForm: React.FC<Props> = ({ onSubmit, todo = null }) => {
   const [title, setTitle] = useState(todo?.title || '');
   const [userId, setUserId] = useState(todo?.userId || 0);
   const [completed, setCompleted] = useState(todo?.completed || false);
@@ -30,7 +35,13 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo }) => {
       return;
     }
 
-    onSubmit(title, userId, completed);
+    onSubmit({
+      id: todo?.id || 0,
+      title,
+      completed,
+      userId,
+      user: getUser(userId),
+    });
 
     setTitle('');
     setUserId(0);

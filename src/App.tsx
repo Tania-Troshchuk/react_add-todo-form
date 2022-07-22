@@ -1,50 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import './App.scss';
 import { TodoList } from './components/TodoList/TodoList';
 
 import { Todo } from './types/Todo';
-import { User } from './types/User';
 
-import usersFromServer from './api/users';
 import todosFromServer from './api/todos';
-import { TodoForm } from './components/TodoForm/TodoForm';
+import { getUser, TodoForm } from './components/TodoForm/TodoForm';
 
-function getUser(userId: number): User | null {
-  const foundUser = usersFromServer.find(
-    user => user.id === userId,
-  );
-
-  return foundUser || null;
-}
+const initialTodos = todosFromServer.map(todo => ({
+  ...todo,
+  user: getUser(todo.userId),
+}));
 
 export const App = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState(initialTodos);
 
-  useEffect(() => {
-    const initialTodos = todosFromServer.map(todo => ({
-      ...todo,
-      user: getUser(todo.userId),
-    }));
-
-    setTodos(initialTodos);
-  }, []);
-
-  const addTodo = (
-    newTitle: string,
-    newUserId: number,
-    newCompleted: boolean,
-  ) => {
+  const addTodo = (todoData: Todo) => {
     const maxId = Math.max(
       ...todos.map(todo => todo.id),
     );
 
     const newTodo: Todo = {
+      ...todoData,
       id: maxId + 1,
-      title: newTitle,
-      userId: newUserId,
-      completed: newCompleted,
-      user: getUser(newUserId),
     };
 
     setTodos(currentTodos => [...currentTodos, newTodo]);
@@ -60,15 +39,10 @@ export const App = () => {
 
   const updateTodo = (updatedTodo: Todo) => {
     setTodos(
-      todos.map(todo => {
-        if (todo.id !== updatedTodo.id) {
-          return todo;
-        }
-
-        return {
-          ...updatedTodo,
-          user: getUser(updatedTodo.userId),
-        };
+      currentTodos => currentTodos.map(todo => {
+        return todo.id !== updatedTodo.id
+          ? todo
+          : updatedTodo;
       }),
     );
   };

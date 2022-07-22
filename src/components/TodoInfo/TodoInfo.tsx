@@ -13,22 +13,6 @@ type Props = {
 export const TodoInfo: React.FC<Props> = ({ todo, onDelete, onUpdate }) => {
   const [isEditing, setEditing] = useState(false);
 
-  const handleSubmit = (
-    title: string,
-    userId: number,
-    completed: boolean,
-  ) => {
-    const updatedTodo: Todo = {
-      ...todo,
-      title,
-      userId,
-      completed,
-    };
-
-    onUpdate(updatedTodo);
-    setEditing(false);
-  };
-
   return (
     <article
       data-id={todo.id}
@@ -39,7 +23,10 @@ export const TodoInfo: React.FC<Props> = ({ todo, onDelete, onUpdate }) => {
       {isEditing ? (
         <TodoForm
           todo={todo}
-          onSubmit={handleSubmit}
+          onSubmit={(updatedTodo) => {
+            onUpdate(updatedTodo);
+            setEditing(false);
+          }}
         />
       ) : (
         <>
@@ -60,7 +47,7 @@ export const TodoInfo: React.FC<Props> = ({ todo, onDelete, onUpdate }) => {
               Edit
             </button>
           </h2>
-      
+
           {todo.user && (
             <UserInfo user={todo.user} />
           )}
