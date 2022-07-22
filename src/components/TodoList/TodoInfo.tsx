@@ -1,19 +1,20 @@
 /* eslint-disable no-console */
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import { TodoForm } from '../TodoForm/TodoForm';
 import { UserInfo } from '../UserInfo/UserInfo';
 
+import { TodosContext } from './TodosContext';
+
 type Props = {
   todo: Todo,
-  onDelete: (todoId: number) => void,
-  onUpdate: (updatedTodo: Todo) => void,
 };
 
 export const TodoInfo: React.FC<Props> = React.memo(
-  ({ todo, onDelete, onUpdate }) => {
+  ({ todo }) => {
     const [isEditing, setEditing] = useState(false);
+    const { deleteTodo, updateTodo } = useContext(TodosContext);
 
     return (
       <article
@@ -26,7 +27,7 @@ export const TodoInfo: React.FC<Props> = React.memo(
           <TodoForm
             todo={todo}
             onSubmit={(updatedTodo) => {
-              onUpdate(updatedTodo);
+              updateTodo(updatedTodo);
               setEditing(false);
             }}
           />
@@ -37,7 +38,7 @@ export const TodoInfo: React.FC<Props> = React.memo(
 
               <button
                 type="button"
-                onClick={() => onDelete(todo.id)}
+                onClick={() => deleteTodo(todo.id)}
               >
                 x
               </button>
